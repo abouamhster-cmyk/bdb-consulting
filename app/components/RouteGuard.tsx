@@ -2,17 +2,22 @@
 
 import { useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
 export default function RouteGuard({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
+  const pathname = usePathname();
   const router = useRouter();
 
+  // Pages accessibles sans authentification
+  const publicPaths = ['/login'];
+  const isPublicPath = publicPaths.includes(pathname);
+
   useEffect(() => {
-    if (!loading && !user) {
+    if (!loading && !user && !isPublicPath) {
       router.push('/login');
     }
-  }, [user, loading, router]);
+  }, [user, loading, router, isPublicPath]);
 
   if (loading) {
     return (
@@ -23,6 +28,11 @@ export default function RouteGuard({ children }: { children: React.ReactNode }) 
         </div>
       </div>
     );
+  }
+
+  // Pour la page login, on affiche directement
+  if (isPublicPath) {
+    return <>{children}</>;
   }
 
   if (!user) {
