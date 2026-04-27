@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { supabase } from '@/lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
@@ -30,15 +29,7 @@ export default function LoginPage() {
 
     if (isLogin) {
       // Connexion
-
-      const { error } = await signUp(email, password, {
-        first_name: firstName,
-        last_name: lastName,
-        company_name: companyName,
-        phone: phone,
-        position: position,
-        marketing_consent: marketingConsent
-      });
+      const { error } = await signIn(email, password);
       if (error) {
         toast.error(error.message || 'Erreur de connexion');
       } else {
@@ -60,28 +51,18 @@ export default function LoginPage() {
       }
       
       // Inscription
-      const { data, error } = await signUp(email, password);
+      const { error } = await signUp(email, password, {
+        first_name: firstName,
+        last_name: lastName,
+        company_name: companyName,
+        phone: phone,
+        position: position,
+        marketing_consent: marketingConsent
+      });
       
       if (error) {
         toast.error(error.message || 'Erreur d\'inscription');
-      } else if (data?.user) {
-        // Créer le profil utilisateur
-        const { error: profileError } = await supabase
-          .from('user_profiles')
-          .insert({
-            user_id: data.user.id,
-            first_name: firstName,
-            last_name: lastName,
-            company_name: companyName,
-            phone: phone,
-            position: position,
-            marketing_consent: marketingConsent
-          });
-        
-        if (profileError) {
-          console.error('Erreur création profil:', profileError);
-        }
-        
+      } else {
         toast.success(
           `🎉 Bienvenue ${firstName || email.split('@')[0]} ! Votre compte a été créé avec succès.`,
           { duration: 5000 }
