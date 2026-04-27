@@ -1,32 +1,39 @@
- import type { NextConfig } from "next";
-import { withSentryConfig } from "@sentry/nextjs";
+import { withSentryConfig } from '@sentry/nextjs';
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  reactStrictMode: true,
-  transpilePackages: [],
   images: {
-    domains: ['picsum.photos', 'storage.googleapis.com', 'lh3.googleusercontent.com'],
-    unoptimized: true,
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**',
+      },
+    ],
   },
-  // Désactiver les en-têtes X-Powered-By pour la sécurité
-  poweredByHeader: false,
+  // Désactiver le webpack de base pour utiliser Turbopack
+  webpack: (config) => {
+    return config;
+  },
 };
 
-// Configuration Sentry
 export default withSentryConfig(nextConfig, {
-  // Paramètres Sentry
   org: "bdb-consulting",
   project: "bdb-app",
+  authToken: process.env.SENTRY_AUTH_TOKEN,
   
-  // Options de build
-  silent: !process.env.CI,
-  widenClientFileUpload: true,
-  tunnelRoute: "/monitoring",
-  hideSourceMaps: true,
+
+  
   disableLogger: true,
   
   // Options de source maps
   sourceMaps: {
-    deleteSourcemapsAfterUpload: true,
+    include: ['./app', './lib'],
+    ignore: ['node_modules'],
   },
+  
+  widenClientFileUpload: true,
+  tunnelRoute: "/monitoring",
+  
+  // Désactiver le téléchargement des source maps en développement
+  dryRun: process.env.NODE_ENV !== 'production',
 });
