@@ -30,7 +30,15 @@ export default function LoginPage() {
 
     if (isLogin) {
       // Connexion
-      const { error } = await signIn(email, password);
+
+      const { error } = await signUp(email, password, {
+        first_name: firstName,
+        last_name: lastName,
+        company_name: companyName,
+        phone: phone,
+        position: position,
+        marketing_consent: marketingConsent
+      });
       if (error) {
         toast.error(error.message || 'Erreur de connexion');
       } else {
