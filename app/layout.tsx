@@ -5,6 +5,7 @@ import DashboardLayout from './components/DashboardLayout';
 import { AuthProvider } from './context/AuthContext';
 import ToasterProvider from './components/ToasterProvider';
 import CookieBanner from './components/CookieBanner';
+import RouteGuard from './components/RouteGuard';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -23,9 +24,11 @@ export default function RootLayout({
       <body className={inter.className}>
         <AuthProvider>
           <ToasterProvider />
-          <DashboardLayout>
-            {children}
-          </DashboardLayout>
+          <RouteGuard>
+            <DashboardLayout>
+              {children}
+            </DashboardLayout>
+          </RouteGuard>
           <CookieBanner />
         </AuthProvider>
       </body>
