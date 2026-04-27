@@ -1,5 +1,4 @@
-import { withSentryConfig } from '@sentry/nextjs';
-import type { NextConfig } from 'next';
+﻿import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   images: {
@@ -12,11 +11,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withSentryConfig(nextConfig, {
-  org: "bdb-consulting",
-  project: "bdb-app",
-  authToken: process.env.SENTRY_AUTH_TOKEN,
-  
-  // Désactiver en développement
-  dryRun: process.env.NODE_ENV !== 'production',
-});
+export default nextConfig;
