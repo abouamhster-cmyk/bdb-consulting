@@ -33,17 +33,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Récupérer le profil utilisateur
   const fetchUserProfile = async (userId: string) => {
     try {
       const { data, error } = await supabase
         .from('user_profiles')
         .select('*')
         .eq('user_id', userId)
-        .single();
+        .maybeSingle();  // ← utilise maybeSingle au lieu de single
       
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         console.error('Erreur récupération profil:', error);
+        return null;
       }
       
       return data;
@@ -53,7 +53,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Rafraîchir le profil
   const refreshProfile = async () => {
     if (user) {
       const userProfile = await fetchUserProfile(user.id);
@@ -62,7 +61,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    // Vérifier la session existante
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -75,7 +73,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
     });
 
-    // Écouter les changements d'auth
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -99,7 +96,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signUp = async (email: string, password: string, userData?: Partial<UserProfile>) => {
-    // 1. Créer l'utilisateur dans auth
     const { data, error } = await supabase.auth.signUp({ 
       email, 
       password,
@@ -115,7 +111,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return { error };
     }
     
-    // 2. Créer le profil dans user_profiles
     if (data.user) {
       const { error: profileError } = await supabase
         .from('user_profiles')
