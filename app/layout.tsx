@@ -6,7 +6,6 @@ import { AuthProvider } from './context/AuthContext';
 import ToasterProvider from './components/ToasterProvider';
 import CookieBanner from './components/CookieBanner';
 import RouteGuard from './components/RouteGuard';
-import { useEffect } from 'react';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -20,15 +19,6 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // Test Supabase - s'exécute côté client uniquement
-  useEffect(() => {
-    import('@/lib/supabase').then(({ supabase }) => {
-      supabase.from('company_config').select('*').then(res => {
-        console.log('Supabase test:', res);
-      });
-    });
-  }, []);
-
   return (
     <html lang="fr">
       <body className={inter.className}>
