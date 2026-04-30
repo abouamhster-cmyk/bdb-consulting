@@ -23,7 +23,15 @@ export default function RootLayout({
     <html lang="fr">
       <body className={inter.className}>
         <AuthProvider>
+if (typeof window !== 'undefined') {
+  import('@/lib/supabase').then(({ supabase }) => {
+    supabase.from('company_config').select('*').then(res => {
+      console.log('Supabase test:', res)
+    })
+  })
+}
           <ToasterProvider />
+          
           
             <DashboardLayout>
               {children}
