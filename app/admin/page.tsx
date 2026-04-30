@@ -30,21 +30,33 @@ export default function AdminPage() {
 
   const checkAdminStatus = async () => {
     try {
+      // 🔥 CHANGEMENT 1 : Utiliser maybeSingle() au lieu de single()
       const { data, error } = await supabase
         .from('admin_users')
         .select('user_id')
         .eq('user_id', user?.id)
-        .single();
+        .maybeSingle();  // ← ICI le changement principal
       
-      if (error || !data) {
-        logger.warn({ userId: user?.id }, 'Accès admin refusé');
+      // 🔥 CHANGEMENT 2 : Vérifier error ET l'absence de data
+      if (error) {
+        console.error('Erreur vérification admin:', error);
+        logger.error({ error, userId: user?.id }, 'Erreur vérification admin');
         router.push('/dashboard');
         return;
       }
       
+      if (!data) {
+        logger.warn({ userId: user?.id }, 'Accès admin refusé - utilisateur non admin');
+        router.push('/dashboard');
+        return;
+      }
+      
+      console.log('Admin vérifié:', data);
       setIsAdmin(true);
       loadAdminData();
     } catch (err) {
+      console.error('Exception checkAdminStatus:', err);
+      logger.error({ error: err, userId: user?.id }, 'Exception vérification admin');
       router.push('/dashboard');
     } finally {
       setLoading(false);
@@ -52,34 +64,66 @@ export default function AdminPage() {
   };
 
   const loadAdminData = async () => {
-    const { count: usersCount } = await supabase
-      .from('company_config')
-      .select('user_id', { count: 'exact', head: true });
-    
-    const { count: strategiesCount } = await supabase
-      .from('company_config')
-      .select('*', { count: 'exact', head: true });
-    
-    const { count: postsCount } = await supabase
-      .from('post_skeleton')
-      .select('*', { count: 'exact', head: true });
-    
-    const { count: imagesCount } = await supabase
-      .from('generated_images')
-      .select('*', { count: 'exact', head: true });
-    
-    const { count: videosCount } = await supabase
-      .from('generated_videos')
-      .select('*', { count: 'exact', head: true });
-    
-    setStats({
-      totalUsers: usersCount || 0,
-      totalStrategies: strategiesCount || 0,
-      totalPosts: postsCount || 0,
-      totalImages: imagesCount || 0,
-      totalVideos: videosCount || 0,
-      apiCalls: 1247
-    });
+    try {
+      // Compter les utilisateurs uniques dans company_config
+      const { data: usersData, error: usersError } = await supabase
+        .from('company_config')
+        .select('user_id', { count: 'exact' });
+      
+      if (usersError) {
+        console.error('Erreur chargement users:', usersError);
+      }
+      
+      // Compter les configurations
+      const { count: strategiesCount, error: strategiesError } = await supabase
+        .from('company_config')
+        .select('*', { count: 'exact', head: true });
+      
+      if (strategiesError) {
+        console.error('Erreur chargement strategies:', strategiesError);
+      }
+      
+      // Compter les posts
+      const { count: postsCount, error: postsError } = await supabase
+        .from('post_skeleton')
+        .select('*', { count: 'exact', head: true });
+      
+      if (postsError) {
+        console.error('Erreur chargement posts:', postsError);
+      }
+      
+      // Compter les images
+      const { count: imagesCount, error: imagesError } = await supabase
+        .from('generated_images')
+        .select('*', { count: 'exact', head: true });
+      
+      if (imagesError) {
+        console.error('Erreur chargement images:', imagesError);
+      }
+      
+      // Compter les vidéos
+      const { count: videosCount, error: videosError } = await supabase
+        .from('generated_videos')
+        .select('*', { count: 'exact', head: true });
+      
+      if (videosError) {
+        console.error('Erreur chargement videos:', videosError);
+      }
+      
+      // Extraire les user_id uniques pour le comptage
+      const uniqueUsers = usersData ? new Set(usersData.map(item => item.user_id)).size : 0;
+      
+      setStats({
+        totalUsers: uniqueUsers,
+        totalStrategies: strategiesCount || 0,
+        totalPosts: postsCount || 0,
+        totalImages: imagesCount || 0,
+        totalVideos: videosCount || 0,
+        apiCalls: 1247
+      });
+    } catch (err) {
+      console.error('Exception loadAdminData:', err);
+    }
   };
 
   if (loading) {
