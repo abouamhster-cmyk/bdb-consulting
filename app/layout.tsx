@@ -24,11 +24,11 @@ export default function RootLayout({
       <body className={inter.className}>
         <AuthProvider>
           <ToasterProvider />
-          <RouteGuard>
+          // <RouteGuard>
             <DashboardLayout>
               {children}
             </DashboardLayout>
-          </RouteGuard>
+          // </RouteGuard>
           <CookieBanner />
         </AuthProvider>
       </body>
